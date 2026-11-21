@@ -6,6 +6,8 @@ import org.sid.ebankservice.entity.BankAccount;
 import org.sid.ebankservice.feign.CustomerRestClient;
 import org.sid.ebankservice.mappers.BankAccountMapper;
 import org.sid.ebankservice.repository.BankAccountRepository;
+import org.springframework.ai.mcp.annotation.McpTool;
+import org.springframework.ai.mcp.annotation.McpToolParam;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -25,7 +27,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    @McpToolParam(description = "Get all Bank accounts")
+    @McpTool(description = "Get all Bank accounts")
     public List<BankAccountDTO> getAllBankAccounts() {
         List<BankAccount> bankAccounts = bankAccountRepository.findAll();
         System.out.println("getAllBankAccounts : "+bankAccounts.size());
@@ -33,7 +35,8 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public BankAccountDTO getBankAccountById(String id) {
+    @McpTool(description = "Get Bank account by id")
+    public BankAccountDTO getBankAccountById(@McpToolParam(description = "the bank account id ") String id) {
         BankAccount bankAccount = bankAccountRepository.findById(id).orElseThrow(()->new RuntimeException("Bank account not found") );
         BankAccountDTO bankAccountDTO=dtoMapper.toBankAccountDTO(bankAccount);
         bankAccountDTO.setCustomer(customerRestClient.getCustomerById(bankAccountDTO.getCustomerId()));
@@ -41,13 +44,15 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public List<BankAccountDTO> getBankAccountByCustomerId(Long customerId) {
+    @McpTool(description = "Get bank account y customer id")
+    public List<BankAccountDTO> getBankAccountByCustomerId(@McpToolParam(description = "ths customer id") Long customerId) {
         List<BankAccount> banakAccounts= bankAccountRepository.findByCustomerId(customerId);
         return banakAccounts.stream().map(account-> dtoMapper.toBankAccountDTO(account)).collect(Collectors.toList());
     }
 
     @Override
-    public BankAccountDTO saveBankAccount(BankAccountRequestDTO bankAccountRequestDTO) {
+    @McpTool(description = "save new bank account")
+    public BankAccountDTO saveBankAccount(@McpToolParam(description = "the bank account to save (balance,type, customerId)") BankAccountRequestDTO bankAccountRequestDTO) {
         try{
             BankAccount bankAccount = dtoMapper.toBankAccount(bankAccountRequestDTO);
             bankAccount.setCustomer(customerRestClient.getCustomerById(bankAccount.getCustomerId()));
